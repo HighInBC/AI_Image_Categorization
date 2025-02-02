@@ -19,15 +19,24 @@ def describe_image(image_path):
     image_data = encode_image(image_path)
     payload = {
         "model": "llava",
-        "prompt": "Describe this image in detail.",
-        "images": [image_data]
+        "prompt": "Describe this image in detail. Also create a list of keywords related to objects, themes etc.",
+        "images": [image_data],
+        "stream": False  # Disable streaming
     }
     try:
         response = requests.post(OLLAMA_URL, json=payload)
         response.raise_for_status()
-        return response.json().get("response", "No description generated.")
+        
+        # DEBUG: Print raw response for troubleshooting
+        print(f"Raw Response: {response.text}")
+        
+        # Ensure valid JSON response
+        json_response = response.json()
+        return json_response.get("response", "No description generated.")
     except requests.exceptions.RequestException as e:
         return f"Error processing image: {str(e)}"
+    except ValueError as e:
+        return f"JSON parsing error: {str(e)}\nRaw response: {response.text}"
 
 # Function to process all images in a directory recursively
 def process_images(directory):
@@ -43,6 +52,8 @@ def process_images(directory):
             txt_path = image_path.with_suffix(".txt")
             with open(txt_path, "w", encoding="utf-8") as txt_file:
                 txt_file.write(description)
+            # print filename: description
+            print(f"{image_path.name}: {description}")
 
             print(f"Saved description to: {txt_path}")
 
