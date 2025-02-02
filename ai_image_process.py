@@ -1,6 +1,7 @@
 import os
 import requests
 import base64
+import argparse
 from pathlib import Path
 
 # Ollama API endpoint
@@ -59,7 +60,12 @@ def process_images(directory):
 
 # Main execution
 if __name__ == "__main__":
-    image_folder = ''
+    parser = argparse.ArgumentParser(description="Process images in a given directory.")
+    parser.add_argument("directory", type=str, help="Path to the directory containing images.")
+    args = parser.parse_args()
+    
+    image_folder = args.directory
+    
     if os.path.isdir(image_folder):
         process_images(image_folder)
         print("\nProcessing complete!")
