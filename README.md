@@ -2,7 +2,7 @@
 
 This script recursively scans a directory for images, uses **Ollama's LLaVA model** to generate descriptions, and saves the results in `.txt` files with the same filename as the image.
 
-This code was written by ChatGPT and tested by a human.
+This code, and README file was written by ChatGPT and tested by a human.
 
 ## Installation
 
