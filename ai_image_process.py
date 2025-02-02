@@ -10,7 +10,7 @@ def encode_image(image_path):
     with open(image_path, "rb") as image_file:
         return base64.b64encode(image_file.read()).decode("utf-8")
 
-def describe_image(image_path, ollama_url):
+def describe_image(image_path, ollama_url, timeout):
     image_data = encode_image(image_path)
     payload = {
         "model": "llava",
@@ -19,7 +19,7 @@ def describe_image(image_path, ollama_url):
         "stream": False
     }
     try:
-        response = requests.post(ollama_url, json=payload)
+        response = requests.post(ollama_url, json=payload, timeout=timeout)
         response.raise_for_status()
                 
         json_response = response.json()
@@ -29,7 +29,7 @@ def describe_image(image_path, ollama_url):
     except ValueError as e:
         return f"JSON parsing error: {str(e)}\nRaw response: {response.text}"
 
-def process_images(directory, ollama_url):
+def process_images(directory, ollama_url, timeout):
     directory = Path(directory)
     for image_path in directory.rglob("*"):
         if image_path.suffix.lower() in VALID_EXTENSIONS:
@@ -41,7 +41,7 @@ def process_images(directory, ollama_url):
 
             print(f"Processing: {image_path}")
 
-            description = describe_image(image_path, ollama_url)
+            description = describe_image(image_path, ollama_url, timeout)
 
             with open(txt_path, "w", encoding="utf-8") as txt_file:
                 txt_file.write(description)
@@ -53,13 +53,14 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process images in a given directory.")
     parser.add_argument("directory", type=str, help="Path to the directory containing images.")
     parser.add_argument("--ollama_url", type=str, default="http://localhost:11434/api/generate", help="URL of the Ollama API.")
+    parser.add_argument("--timeout", type=int, default=60, help="Timeout for API requests in seconds.")
     args = parser.parse_args()
     
     image_folder = args.directory
     ollama_url = args.ollama_url
     
     if os.path.isdir(image_folder):
-        process_images(image_folder, ollama_url)
+        process_images(image_folder, ollama_url, args.timeout)
         print("\nProcessing complete!")
     else:
         print("Invalid directory. Please enter a valid path.")
