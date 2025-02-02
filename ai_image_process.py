@@ -5,6 +5,7 @@ import argparse
 from pathlib import Path
 import platform
 import subprocess
+import time
 
 VALID_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp", ".gif", ".webp"}
 
@@ -19,7 +20,7 @@ def restart_ollama():
     else:
         os.system("ollama llava stop; ollama llava run")
 
-def describe_image(image_path, ollama_url, timeout):
+def describe_image(image_path, ollama_url, timeout, max_retries=3):
     image_data = encode_image(image_path)
     payload = {
         "model": "llava",
@@ -27,19 +28,26 @@ def describe_image(image_path, ollama_url, timeout):
         "images": [image_data],
         "stream": False
     }
-    try:
-        response = requests.post(ollama_url, json=payload, timeout=timeout)
-        if response.status_code != 200:
-            restart_ollama()
-            return "Error: Ollama encountered a server issue. Restarted and skipping this image."
-        response.raise_for_status()
-                
-        json_response = response.json()
-        return json_response.get("response", "No description generated.")
-    except requests.exceptions.RequestException as e:
-        return f"Error processing image: {str(e)}"
-    except ValueError as e:
-        return f"JSON parsing error: {str(e)}\nRaw response: {response.text}"
+    for attempt in range(max_retries):
+        try:
+            response = requests.post(ollama_url, json=payload, timeout=timeout)
+            if response.status_code != 200:
+                restart_ollama()
+                time.sleep(5) 
+                continue
+            response.raise_for_status()
+            json_response = response.json()
+            description = json_response.get("response")
+            if description:
+                return description
+            else:
+                print(f"Attempt {attempt + 1} failed: No description generated.")
+        except requests.exceptions.RequestException as e:
+            print(f"Attempt {attempt + 1} failed: {str(e)}")
+        except ValueError as e:
+            print(f"Attempt {attempt + 1} failed: JSON parsing error: {str(e)}\nRaw response: {response.text}")
+        time.sleep(2)
+    return "Error: Unable to generate description after multiple attempts."
 
 def process_images(directory, ollama_url, timeout):
     directory = Path(directory)
@@ -55,11 +63,13 @@ def process_images(directory, ollama_url, timeout):
 
             description = describe_image(image_path, ollama_url, timeout)
 
-            with open(txt_path, "w", encoding="utf-8") as txt_file:
-                txt_file.write(description)
-            print(f"{image_path.name}: {description}")
-
-            print(f"Saved description to: {txt_path}")
+            if "Error" not in description:
+                with open(txt_path, "w", encoding="utf-8") as txt_file:
+                    txt_file.write(description)
+                print(f"{image_path.name}: {description}")
+                print(f"Saved description to: {txt_path}")
+            else:
+                print(f"Skipping: {image_path} due to repeated failures.")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process images in a given directory.")
