@@ -5,13 +5,16 @@ This script recursively scans a directory for images, uses **Ollama's LLaVA mode
 ## Installation
 
 ### Step 1: Install Ollama
+
+#### **Linux**
 Ollama provides an easy way to run LLaVA locally. To install it, run:
 
 ```sh
 curl -fsSL https://ollama.com/install.sh | sh
 ```
 
-Alternatively, download the installer from the official [Ollama website](https://ollama.com/).
+#### **Windows**
+Download the installer from the official [Ollama website](https://ollama.com/) and follow the installation instructions.
 
 ### Step 2: Pull the LLaVA Model
 To use LLaVA for image descriptions, pull the model by running:
@@ -32,16 +35,24 @@ pip install requests
 ```
 
 ### Step 2: Run the Script
+
+#### **Linux**
 To process a directory of images, use:
 
 ```sh
 python script.py /path/to/images
 ```
 
-Replace `/path/to/images` with the actual directory containing images. The script will:
-- Scan the folder recursively for images (`.jpg`, `.png`, `.gif`, etc.).
-- Use **Ollama’s LLaVA** model to generate descriptions.
-- Save each description in a `.txt` file with the same name as the image.
+Replace `/path/to/images` with the actual directory containing images.
+
+#### **Windows**
+Open **Command Prompt** or **PowerShell**, then run:
+
+```powershell
+python script.py C:\path\to\images
+```
+
+Replace `C:\path\to\images` with the actual directory containing images.
 
 ### Example Output
 If you have:
