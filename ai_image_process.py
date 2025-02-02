@@ -44,13 +44,19 @@ def process_images(directory):
     directory = Path(directory)
     for image_path in directory.rglob("*"):
         if image_path.suffix.lower() in VALID_EXTENSIONS:
+            txt_path = image_path.with_suffix(".txt")
+            
+            # Skip if a non-empty text file already exists
+            if txt_path.exists() and txt_path.stat().st_size > 0:
+                print(f"Skipping: {image_path} (description already exists)")
+                continue
+
             print(f"Processing: {image_path}")
 
             # Get description from Ollama
             description = describe_image(image_path)
 
             # Save output as a .txt file
-            txt_path = image_path.with_suffix(".txt")
             with open(txt_path, "w", encoding="utf-8") as txt_file:
                 txt_file.write(description)
             # print filename: description
