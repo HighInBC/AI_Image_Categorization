@@ -3,12 +3,21 @@ import requests
 import base64
 import argparse
 from pathlib import Path
+import platform
+import subprocess
 
 VALID_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp", ".gif", ".webp"}
 
 def encode_image(image_path):
     with open(image_path, "rb") as image_file:
         return base64.b64encode(image_file.read()).decode("utf-8")
+
+def restart_ollama():
+    print("Restarting Ollama...")
+    if platform.system() == "Windows":
+        subprocess.run("ollama llava stop && ollama llava run", shell=True)
+    else:
+        os.system("ollama llava stop; ollama llava run")
 
 def describe_image(image_path, ollama_url, timeout):
     image_data = encode_image(image_path)
@@ -20,6 +29,9 @@ def describe_image(image_path, ollama_url, timeout):
     }
     try:
         response = requests.post(ollama_url, json=payload, timeout=timeout)
+        if response.status_code != 200:
+            restart_ollama()
+            return "Error: Ollama encountered a server issue. Restarted and skipping this image."
         response.raise_for_status()
                 
         json_response = response.json()
