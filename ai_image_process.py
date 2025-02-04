@@ -7,7 +7,7 @@ import platform
 import subprocess
 import time
 
-VALID_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp", ".gif"}
+VALID_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp", ".gif", ".webp"}
 
 def encode_image(image_path):
     with open(image_path, "rb") as image_file:
@@ -16,9 +16,9 @@ def encode_image(image_path):
 def restart_ollama():
     print("Restarting Ollama...")
     if platform.system() == "Windows":
-        subprocess.run("ollama stop llava && ollama start llava", shell=True)
+        subprocess.run("ollama stop llava && ollama run llava", shell=True)
     else:
-        os.system("ollama llava stop; ollama llava run")
+        os.system("ollama stop llava; ollama start llava")
 
 def describe_image(image_path, ollama_url, timeout, max_retries=3):
     image_data = encode_image(image_path)
