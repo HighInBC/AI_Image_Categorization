@@ -7,7 +7,7 @@ import platform
 import subprocess
 import time
 
-VALID_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp", ".gif", ".webp"}
+VALID_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp", ".gif"}
 
 def encode_image(image_path):
     with open(image_path, "rb") as image_file:
@@ -32,8 +32,8 @@ def describe_image(image_path, ollama_url, timeout, max_retries=3):
         try:
             response = requests.post(ollama_url, json=payload, timeout=timeout)
             if response.status_code != 200:
-                restart_ollama()
-                time.sleep(5) 
+                # restart_ollama()
+                # time.sleep(5) 
                 continue
             response.raise_for_status()
             json_response = response.json()
